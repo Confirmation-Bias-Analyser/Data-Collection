@@ -1,3 +1,4 @@
 .ipynb_checkpoints
 .git
-reddit_password.txt
+reddit_credentials.txt
+twitter_bearer_token.txt
