@@ -2,3 +2,4 @@
 .git
 reddit_credentials.txt
 twitter_bearer_token.txt
+database_uri.txt
