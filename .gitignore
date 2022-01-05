@@ -1,5 +1,5 @@
 .ipynb_checkpoints
 .git
-reddit_credentials.txt
-twitter_bearer_token.txt
-database_uri.txt
+__pycache__
+Authentication
+Datasets
