@@ -80,17 +80,7 @@ def getLinks(string):
             links += url + ';'
 
     return links
-    
-# def getLinkTitle(url):
-#     reqs = requests.get(url)
-#     soup = BeautifulSoup(reqs.text, 'html.parser')
-#     result = ''
 
-#     for title in soup.find_all('title'):
-#         result += title.get_text()
-
-#     return result
-    
 def getURLfromList(url):
     if ';' in url:
         url = url.split(';')[:-1]
@@ -103,19 +93,3 @@ def getURLfromList(url):
     
     else:
         return ''
-
-# def getURLfromList(url):
-#     if len(url) > 0:
-#         result = []
-        
-#         for i in url:
-#             try:
-#                 result.append(getLinkTitle(i))
-                
-#             except: continue
-            
-#         if len(result) > 0: return result
-#         else: return ''
-    
-#     else:
-#         return ''
