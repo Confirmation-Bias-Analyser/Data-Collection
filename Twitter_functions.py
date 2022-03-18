@@ -1,4 +1,6 @@
 import requests
+import pandas as pd
+from functions import *
 
 def connect_to_endpoint(url, headers, next_token = None):    
     response = requests.request("GET", url, headers = headers)
@@ -32,7 +34,8 @@ def getTweetInformation(conversation_id, header):
     return result['data'][0]['created_at']
 
 def getTweetComments(conversation_data):
-    conversation_dict = {'id':[], 'timestamp':[], 'reply_to':[], 'comment':[]} #, 'new_id':[]
+    track_id = 10000
+    conversation_dict = {'id':[], 'timestamp':[], 'reply_to':[], 'comment':[], 'new_id':[]} #
     
     for i in range(len(conversation_data['data'])):
         print('User ID:', conversation_data['data'][i]['author_id'], 
@@ -44,6 +47,64 @@ def getTweetComments(conversation_data):
         conversation_dict['timestamp'].append(conversation_data['data'][i]['created_at'])
         conversation_dict['reply_to'].append(conversation_data['data'][i]['in_reply_to_user_id'])
         conversation_dict['comment'].append(conversation_data['data'][i]['text'])
-#         conversation_dict['new_id'].append(generateRandomID())
+        conversation_dict['new_id'].append(track_id)
+        
+        track_id += 1
         
     return conversation_dict
+
+def getParentID(dataframe, parent_tweet_id):
+    parent_id = []
+
+    for index, row in dataframe.iterrows():
+        if row['reply_to'] != parent_tweet_id:
+            count = 0
+            
+            for _, i in dataframe.iterrows():
+                if row['reply_to'] == i['id']:
+                    parent_id.append(i['new_id'])
+                    truth = True
+                    break
+
+                count += 1
+
+            if count == len(dataframe):
+                parent_id.append('nan')
+        
+        else:
+            parent_id.append(parent_tweet_id)
+            
+    return parent_id
+
+def generateTweetInformation(dataset, header):
+    
+    for i in range(len(dataset['data'])):
+        print('Tweet ID:', dataset['data'][i]['id'], 
+              'Time:', getTweetInformation(dataset['data'][i]['id'], header))
+        print(dataset['data'][i]['text'], '\n')
+
+    #     command = (
+    #             '''
+    #             INSERT INTO twitter_data
+    #             VALUES ('%s', '%s', '%s');
+    #             ''' % (dataset['data'][i]['id'], getTweetInformation(dataset['data'][i]['id'], header), 
+    #                    dataset['data'][i]['text'])
+    #             )
+    #     setUpDB(command, uri)
+    
+def processTwitterDataframe(result_dict, account_id, conversation_id, saveDF = True):
+    df = pd.DataFrame.from_dict(result_dict)
+    df['id'] = df['id'].astype(str)
+    df['reply_to'] = df['reply_to'].astype(str)
+    df['reply_to_id'] = getParentID(df, account_id)
+    df['conversation_id'] = conversation_id
+    df['url'] = df['comment'].apply(lambda x: getLinks(x))
+    df['link_title'] = df['url'].apply(lambda x: getURLfromList(x))
+    df['id'] = df['new_id']
+    df['reply_to'] = df['reply_to_id']
+    df = df.drop(columns=['new_id', 'reply_to_id'])
+
+    if saveDF:
+        df.to_csv(f'Datasets/twitter_data_{conversation_id}.csv', index=False)
+        
+    return df    
