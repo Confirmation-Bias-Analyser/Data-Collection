@@ -23,7 +23,7 @@ def setUpDB(command, url):
         # commit the changes
         conn.commit()
         conn.close()
-        print('done')
+        # print('done')
         
     except (Exception, psycopg2.DatabaseError) as error:
         print(error)
@@ -40,21 +40,6 @@ def getData(command, url):
         
     except (Exception, psycopg2.DatabaseError) as error:
         print(error)
-
-# def getLinks(string):
-#     regex = r"(?i)\b((?:https?://|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'\".,<>?«»“”‘’]))"
-#     allLinks = re.findall(regex, string)
-    
-#     if len(allLinks) > 1:
-#         result = ''
-        
-#         for i in allLinks:
-#             result += i[0] + ';'
-        
-#         return result
-    
-#     elif len(allLinks) == 1: return allLinks[0]
-#     else: return ''
 
 def getLinks(string):
     urls = re.findall("http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+", string)

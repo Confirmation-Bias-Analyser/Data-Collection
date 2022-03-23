@@ -92,17 +92,39 @@ def generateTweetInformation(dataset, header):
     #             )
     #     setUpDB(command, uri)
     
-def processTwitterDataframe(result_dict, account_id, conversation_id, saveDF = True):
+def processTwitterDataframe(result_dict, account_id, conversation_id, uri, saveDF = True):
     df = pd.DataFrame.from_dict(result_dict)
     df['id'] = df['id'].astype(str)
     df['reply_to'] = df['reply_to'].astype(str)
     df['reply_to_id'] = getParentID(df, account_id)
+    df['social_media'] = 'Twitter'
     df['conversation_id'] = conversation_id
-    df['url'] = df['comment'].apply(lambda x: getLinks(x))
-    df['link_title'] = df['url'].apply(lambda x: getURLfromList(x))
+    df['head_id'] = account_id
     df['id'] = df['new_id']
     df['reply_to'] = df['reply_to_id']
     df = df.drop(columns=['new_id', 'reply_to_id'])
+    
+    query = ('''
+        select * from tweets_for_analysis where conversation_id = '%s'
+    ''' % df['conversation_id'][0])
+    data = getData(query, uri)
+    
+    if len(data) == 0:
+        for index, row in df.iterrows():
+            command = (
+                    '''
+                    INSERT INTO tweets_for_analysis
+                    VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s');
+                    ''' % (row['id'], row['timestamp'], row['reply_to'], row['comment'].replace("'", "''"), row['social_media'], row['head_id'], str(row['conversation_id']))
+                    )
+            setUpDB(command, uri)
+            
+    else:
+        print('Conversation has been updated in the database.')
+    
+    
+    df['url'] = df['comment'].apply(lambda x: getLinks(x))
+    df['link_title'] = df['url'].apply(lambda x: getURLfromList(x))
 
     if saveDF:
         df.to_csv(f'Datasets/twitter_data_{conversation_id}.csv', index=False)
