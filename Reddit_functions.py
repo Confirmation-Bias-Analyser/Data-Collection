@@ -88,7 +88,7 @@ def processRedditDataframe(conversation_dict, post_id):
     df['social_media'] = 'Reddit'
     
     query = ('''
-        select * from comments_for_analysis where head_id = '%s'
+        select * from reddit_posts_for_analysis where head_id = '%s'
     ''' % df['head_id'][0])
     
     data = getData(query, uri)
@@ -97,7 +97,7 @@ def processRedditDataframe(conversation_dict, post_id):
         for index, row in df.iterrows():
             command = (
                     '''
-                    INSERT INTO comments_for_analysis
+                    INSERT INTO reddit_posts_for_analysis
                     VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s');
                     ''' % (row['id'], row['user_name'], row['timestamp'], row['reply_to'], row['comment'].replace("'", "''"), row['social_media'], row['head_id'])
                     )
