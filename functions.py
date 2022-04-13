@@ -6,6 +6,9 @@ from urllib.parse import urlparse
 from bs4 import BeautifulSoup
 import pandas as pd
 
+with open('Authentication/database_uri.txt', 'r', encoding="utf8") as f:
+    uri = f.read()
+
 def setUpDB(command, url):
     """ create tables in the PostgreSQL database"""
     

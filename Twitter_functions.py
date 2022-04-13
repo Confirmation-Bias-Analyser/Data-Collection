@@ -105,7 +105,7 @@ def processTwitterDataframe(result_dict, account_id, conversation_id, uri, saveD
     df = df.drop(columns=['new_id', 'reply_to_id'])
     
     query = ('''
-        select * from tweets_for_analysis where conversation_id = '%s'
+        select * from comments_for_analysis where conversation_id = '%s'
     ''' % df['conversation_id'][0])
     data = getData(query, uri)
     
@@ -113,7 +113,7 @@ def processTwitterDataframe(result_dict, account_id, conversation_id, uri, saveD
         for index, row in df.iterrows():
             command = (
                     '''
-                    INSERT INTO tweets_for_analysis
+                    INSERT INTO comments_for_analysis
                     VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s');
                     ''' % (row['id'], row['timestamp'], row['reply_to'], row['comment'].replace("'", "''"), row['social_media'], row['head_id'], str(row['conversation_id']))
                     )
