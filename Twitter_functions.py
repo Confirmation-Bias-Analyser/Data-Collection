@@ -2,6 +2,15 @@ import requests
 import pandas as pd
 from functions import *
 
+def create_Twitter_headers(bearer_token):
+    headers = {"Authorization": "Bearer {}".format(bearer_token)}
+    return headers
+
+with open('Authentication/twitter_bearer_token.txt', 'r', encoding="utf8") as f:
+    token = f.read()
+
+header = create_Twitter_headers(token)
+
 def connect_to_endpoint(url, headers, next_token = None):    
     response = requests.request("GET", url, headers = headers)
         
@@ -10,12 +19,12 @@ def connect_to_endpoint(url, headers, next_token = None):
         
     return response.json()
 
-def create_Twitter_headers(bearer_token):
-    headers = {"Authorization": "Bearer {}".format(bearer_token)}
-    return headers
-
-def getTweets(user_id, header):
-    tweets_url = f'https://api.twitter.com/2/users/{user_id}/tweets'
+def getTweetsByUserID(user_id, header, max_results = 50):
+    tweets_url = f'https://api.twitter.com/2/users/{user_id}/tweets?max_results={max_results}'
+    return connect_to_endpoint(tweets_url, header)
+    
+def getSingleTweetInfo(tweetID, header):
+    tweets_url = f'https://api.twitter.com/2/tweets?tweet.fields=created_at,conversation_id,in_reply_to_user_id,author_id,referenced_tweets&ids={tweetID}'
     return connect_to_endpoint(tweets_url, header)
 
 # 'conversation_id' is the identifier for the main tweet
@@ -100,6 +109,7 @@ def processTwitterDataframe(result_dict, account_id, conversation_id, uri, saveD
     df['social_media'] = 'Twitter'
     df['conversation_id'] = conversation_id
     df['head_id'] = account_id
+    df['user_id'] = df['id']
     df['id'] = df['new_id']
     df['reply_to'] = df['reply_to_id']
     df = df.drop(columns=['new_id', 'reply_to_id'])
@@ -114,8 +124,8 @@ def processTwitterDataframe(result_dict, account_id, conversation_id, uri, saveD
             command = (
                     '''
                     INSERT INTO comments_for_analysis
-                    VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s');
-                    ''' % (row['id'], row['timestamp'], row['reply_to'], row['comment'].replace("'", "''"), row['social_media'], row['head_id'], str(row['conversation_id']))
+                    VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s');
+                    ''' % (row['id'], row['timestamp'], row['reply_to'], row['comment'].replace("'", "''"), row['social_media'], row['head_id'], str(row['conversation_id']), row['user_id'])
                     )
             setUpDB(command, uri)
             
