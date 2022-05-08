@@ -27,6 +27,10 @@ def getSingleTweetInfo(tweetID, header):
     tweets_url = f'https://api.twitter.com/2/tweets?tweet.fields=created_at,conversation_id,in_reply_to_user_id,author_id,referenced_tweets&ids={tweetID}'
     return connect_to_endpoint(tweets_url, header)
 
+def getTwitterUserInfo(username, header):
+    user_result = f'https://api.twitter.com/2/users/by?usernames={username}&user.fields=created_at&expansions=pinned_tweet_id&tweet.fields=author_id,created_at'
+    return connect_to_endpoint(user_result, header)
+
 # 'conversation_id' is the identifier for the main tweet
 def getConversation(conversation_id, max_results, header):
     params = 'in_reply_to_user_id,author_id,created_at,conversation_id'
@@ -34,6 +38,7 @@ def getConversation(conversation_id, max_results, header):
 
     return connect_to_endpoint(getConversation_url, header)
 
+# ************************ Suspected duplicate function ************************
 # For now we will return the time only
 def getTweetInformation(conversation_id, header):
     params = 'created_at,conversation_id,in_reply_to_user_id,author_id,referenced_tweets'
