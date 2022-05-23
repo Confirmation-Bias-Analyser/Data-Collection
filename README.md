@@ -1,5 +1,5 @@
 # Data-Collection
-Repository to collect social media data
+Repository to collect and pre-process the social media data collected from Twitter and Reddit APIs, and the [PHEME dataset](https://figshare.com/articles/dataset/PHEME_dataset_for_Rumour_Detection_and_Veracity_Classification/6392078/1).
 
 # Running the APIs
 
