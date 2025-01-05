@@ -27,7 +27,7 @@ def getTweetAndReplies(userID):
     tweets = getTweetsByUserID(userID, header, 100)
     return json.dumps(tweets)
 
-@app.route('/tweet_information/<string:tweetID>')
+@app.route('/tweet_info/<string:tweetID>')
 def getTweetInfo(tweetID):
     tweet = getSingleTweetInfo(tweetID, header)
     return json.dumps(tweet)
@@ -36,6 +36,11 @@ def getTweetInfo(tweetID):
 def getUserInfo(username):
     info = getTwitterUserInfo(username, header)
     return json.dumps(info)
+    
+@app.route('/liked_posts/<string:userID>')
+def getLikedPosts(userID):
+    tweets = getTweetsLikedByUser(userID, header)
+    return json.dumps(tweets)
 
 @app.route('/get_tweets_in_db')
 def getTweetsInDB():

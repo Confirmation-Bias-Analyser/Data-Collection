@@ -2,6 +2,9 @@ import requests
 import pandas as pd
 from functions import *
 
+########## Functions to obtain tweets and other details from API ##########
+
+# Create authentication key to access Twitter API
 def create_Twitter_headers(bearer_token):
     headers = {"Authorization": "Bearer {}".format(bearer_token)}
     return headers
@@ -11,6 +14,7 @@ with open('Authentication/twitter_bearer_token.txt', 'r', encoding="utf8") as f:
 
 header = create_Twitter_headers(token)
 
+# Connect to API with authentication key
 def connect_to_endpoint(url, headers, next_token = None):    
     response = requests.request("GET", url, headers = headers)
         
@@ -19,35 +23,38 @@ def connect_to_endpoint(url, headers, next_token = None):
         
     return response.json()
 
-def getTweetsByUserID(user_id, header, max_results = 50):
+# Obtain the tweets and replies of a specific user
+def getTweetsByUserID(user_id, header, max_results = 100):
     tweets_url = f'https://api.twitter.com/2/users/{user_id}/tweets?max_results={max_results}'
     return connect_to_endpoint(tweets_url, header)
     
+# Obtain the information relating to a specific tweet
 def getSingleTweetInfo(tweetID, header):
-    tweets_url = f'https://api.twitter.com/2/tweets?tweet.fields=created_at,conversation_id,in_reply_to_user_id,author_id,referenced_tweets&ids={tweetID}'
+    params = 'created_at,conversation_id,in_reply_to_user_id,author_id,referenced_tweets'
+    tweets_url = f'https://api.twitter.com/2/tweets?tweet.fields={params}&ids={tweetID}'
     return connect_to_endpoint(tweets_url, header)
 
+# Obtain information relating to specific account
 def getTwitterUserInfo(username, header):
     user_result = f'https://api.twitter.com/2/users/by?usernames={username}&user.fields=created_at&expansions=pinned_tweet_id&tweet.fields=author_id,created_at'
     return connect_to_endpoint(user_result, header)
+    
+# View the tweets liked by a specific user
+def getTweetsLikedByUser(userID, header, max_results = 100):
+    user_result = f'https://api.twitter.com/2/users/{userID}/liked_tweets?max_results={max_results}'
+    return connect_to_endpoint(user_result, header)
 
 # 'conversation_id' is the identifier for the main tweet
-def getConversation(conversation_id, max_results, header):
+# Get all comments of tweet
+def getConversation(conversation_id, header, max_results = 100):
     params = 'in_reply_to_user_id,author_id,created_at,conversation_id'
     getConversation_url = f'https://api.twitter.com/2/tweets/search/recent?query=conversation_id:{conversation_id}&tweet.fields={params}&max_results={max_results}'
-
     return connect_to_endpoint(getConversation_url, header)
 
-# ************************ Suspected duplicate function ************************
-# For now we will return the time only
-def getTweetInformation(conversation_id, header):
-    params = 'created_at,conversation_id,in_reply_to_user_id,author_id,referenced_tweets'
-    tweetInfo_url = f'https://api.twitter.com/2/tweets?tweet.fields={params}&ids={conversation_id}'
-    
-    result = connect_to_endpoint(tweetInfo_url, header)
-    return result['data'][0]['created_at']
+############### Data processing functions ###############
 
-def getTweetComments(conversation_data):
+# Process tweet comments into a dictionary
+def processTweetsToDict(conversation_data):
     track_id = 10000
     conversation_dict = {'id':[], 'timestamp':[], 'reply_to':[], 'comment':[], 'new_id':[]} #
     
@@ -67,6 +74,7 @@ def getTweetComments(conversation_data):
         
     return conversation_dict
 
+# Obtain the identifier of user that comment is being replied to
 def getParentID(dataframe, parent_tweet_id):
     parent_id = []
 
@@ -90,22 +98,15 @@ def getParentID(dataframe, parent_tweet_id):
             
     return parent_id
 
+# Convert JSON structure of output of API to a printed information
 def generateTweetInformation(dataset, header):
     
     for i in range(len(dataset['data'])):
         print('Tweet ID:', dataset['data'][i]['id'], 
-              'Time:', getTweetInformation(dataset['data'][i]['id'], header))
+              'Time:', getSingleTweetInfo(dataset['data'][i]['id'], header)['data'][0]['created_at'])
         print(dataset['data'][i]['text'], '\n')
-
-    #     command = (
-    #             '''
-    #             INSERT INTO twitter_data
-    #             VALUES ('%s', '%s', '%s');
-    #             ''' % (dataset['data'][i]['id'], getTweetInformation(dataset['data'][i]['id'], header), 
-    #                    dataset['data'][i]['text'])
-    #             )
-    #     setUpDB(command, uri)
     
+# Process tweet data in dictionary form to a structured dataframe and save data to database
 def processTwitterDataframe(result_dict, account_id, conversation_id, uri, saveDF = True):
     df = pd.DataFrame.from_dict(result_dict)
     df['id'] = df['id'].astype(str)
